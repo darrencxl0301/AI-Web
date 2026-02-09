@@ -1,438 +1,336 @@
-{{-- resources/views/data-upload.blade.php --}}
+{{-- data-upload.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-950">
-    {{-- Navigation (same as dashboard) --}}
+<div class="min-h-screen bg-gray-950 text-white flex flex-col">
     <nav class="border-b border-white/10 bg-gray-950/90 backdrop-blur-xl sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold font-mono text-emerald-400">SME.AI</a>
-                    <span class="ml-3 text-gray-400 text-sm hidden sm:block">Data Upload</span>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-2xl font-bold font-mono text-emerald-400 tracking-tighter">SME.AI</a>
+                    <span class="h-4 w-px bg-gray-800"></span>
+                    <span class="text-gray-400 text-sm font-medium uppercase tracking-widest">Knowledge Base</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/dashboard" class="text-gray-400 hover:text-emerald-400 transition-colors text-sm">← Back to Dashboard</a>
-                    <a href="/" class="text-gray-400 hover:text-emerald-400 transition-colors text-sm">Logout</a>
+                <div class="flex items-center space-x-6">
+                    @if(request()->has('user_id'))
+                        <span class="text-[10px] bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20 font-black uppercase">Admin: Inspecting User Data</span>
+                    @endif
+                    <a href="/dashboard" class="text-gray-400 hover:text-emerald-400 transition-colors text-sm">Dashboard</a>
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                        @csrf
+                        <button type="submit" class="text-gray-500 hover:text-red-400 transition-colors text-sm font-bold">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="flex">
-        {{-- Sidebar (same as dashboard) --}}
-        <div class="hidden lg:flex lg:flex-shrink-0">
-            <div class="flex flex-col w-64 bg-gray-900/50 border-r border-gray-800">
-                <div class="flex flex-col flex-grow pt-5 overflow-y-auto">
-                    <div class="flex-grow">
-                        <nav class="px-3 space-y-1">
-                            <a href="/dashboard" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v1H8V5z"></path>
-                                </svg>
-                                Dashboard
-                            </a>
-                            <a href="/data-upload" class="bg-emerald-900/20 border-r-2 border-emerald-400 text-emerald-400 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                </svg>
-                                Data Upload
-                            </a>
-                            <a href="/training-jobs" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                </svg>
-                                Training Jobs
-                            </a>
-                            <a href="/model-hub" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                </svg>
-                                Model Hub
-                            </a>
-                            <a href="/model-testing" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                                Model Testing
-                            </a>
-                            <a href="/api-integration" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                                </svg>
-                                API & Integration
-                            </a>
-                            <a href="/settings" class="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                Settings
-                            </a>
-                        </nav>
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="hidden lg:flex flex-col w-64 bg-gray-900/50 border-r border-gray-800 flex-shrink-0">
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <a href="/dashboard" class="flex items-center px-4 py-3 text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-emerald-400 rounded-xl transition-all">
+                    <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                </a>
+                <a href="/data-upload" class="flex items-center px-4 py-3 text-sm font-medium bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                    <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Data Upload
+                </a>
+                <a href="/training-jobs" class="flex items-center px-4 py-3 text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-emerald-400 rounded-xl transition-all">
+                    <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Training Jobs
+                </a>
+                <a href="/model-hub" class="flex items-center px-4 py-3 text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-emerald-400 rounded-xl transition-all">
+                    <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Model Hub
+                </a>
+                <a href="/chat" class="flex items-center px-4 py-3 text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-emerald-400 rounded-xl transition-all">
+                    <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    Model Testing
+                </a>
+            </nav>
+        </aside>
+
+        {{-- 3. Main Content --}}
+        <main class="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-950/10 via-gray-950 to-gray-950">
+            <div class="max-w-6xl mx-auto px-8 py-10">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold tracking-tight text-white">Data Asset Manager</h2>
+                    <p class="mt-2 text-gray-500">Review, preprocess and validate datasets for model injection.</p>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div class="xl:col-span-2 space-y-8">
+                
+                        @if(!auth()->user()->isAdmin() || !request()->has('user_id'))
+                        <div class="bg-gray-900/40 border border-white/5 rounded-[2.5rem] p-10 shadow-2xl">
+                            <div id="upload-area" class="border-2 border-dashed border-gray-800 hover:border-emerald-500/50 bg-black/20 transition-all rounded-[2rem] p-16 text-center cursor-pointer group">
+                                <div class="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                    <svg class="h-10 w-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Ingest Raw Intelligence</h3>
+                                <p class="text-gray-500 mb-6 text-sm">Upload files to initiate the tokenization review.</p>
+                                <div class="mb-8 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl text-left">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-xs font-black text-emerald-400 uppercase tracking-widest">Processing Intent</h4>
+                                            <p class="text-[10px] text-gray-500 mt-1">Select how the engine should ingest this data.</p>
+                                        </div>
+                                        <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                                            <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all has-[:checked]:bg-emerald-500 has-[:checked]:text-gray-950 text-gray-500">
+                                                <input type="radio" name="usage_type" value="fine-tune" class="hidden" checked>
+                                                <span class="text-[10px] font-black uppercase">Fine-Tuning</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all has-[:checked]:bg-indigo-500 has-[:checked]:text-white text-gray-500">
+                                                <input type="radio" name="usage_type" id="rag-trigger" value="rag" class="hidden">
+                                                <span class="text-[10px] font-black uppercase">RAG Index</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                         
+                                    <div id="rag-hint" class="hidden mt-3 pt-3 border-t border-white/5">
+                                        <p class="text-[9px] text-indigo-400 italic">
+                                            * RAG mode will auto-detect QA pairs in CSV/Excel or perform recursive chunking on text files for FAISS indexing.
+                                        </p>
+                                    </div>
+                                </div>
+                                <input type="file" id="file-input" multiple class="hidden" onchange="handleFileSelect(event)">
+                                <button type="button" class="bg-emerald-500 text-gray-950 px-10 py-3 rounded-2xl text-sm font-black transition-all active:scale-95" onclick="document.getElementById('file-input').click()">SELECT ASSETS</button>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Repository Content --}}
+                        <div class="space-y-12"> 
+                            
+     
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between px-2">
+                                    <h3 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>
+                                        RAG Knowledge Base (Vector Assets)
+                                    </h3>
+                                </div>
+
+                                @forelse($files->where('usage_type', 'rag') as $file)
+                                <div class="group bg-gray-900/40 border border-white/5 hover:border-indigo-500/30 rounded-3xl p-5 transition-all flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center relative">
+                                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                            @if($file->preprocessed_path)
+                                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-gray-900 shadow-lg"></div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-white">{{ $file->file_name }}</p>
+                                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                                <p class="text-[10px] font-mono text-gray-500 uppercase">{{ $file->formatted_size }} • {{ $file->created_at->diffForHumans() }}</p>
+                                                <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded text-[9px] font-black uppercase tracking-tighter">Vector Source</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="px-2.5 py-0.5 border border-indigo-500/20 bg-indigo-500/10 text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                                            {{ $file->status === 'completed' ? 'INDEX READY' : $file->status }}
+                                        </span>
+                                        <div class="flex items-center bg-white/5 rounded-xl p-1 border border-white/5">
+                                            <a href="{{ route('datasets.download', $file->id) }}" class="p-2 text-gray-500 hover:text-white transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            </a>
+                                            @if(auth()->user()->isAdmin())
+                                            <button onclick="openPreprocessModal({{ $file->id }}, '{{ $file->status }}', '{{ addslashes($file->admin_note) }}', '{{ $file->file_name }}')" class="p-2 text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                @empty
+                                <div class="py-10 text-center border border-dashed border-white/5 rounded-3xl bg-gray-900/10 text-gray-600 text-[10px] italic uppercase tracking-widest">No knowledge assets uploaded.</div>
+                                @endforelse
+                            </div>
+
+                
+                            <div class="space-y-4 pt-6 border-t border-white/5">
+                                <div class="flex items-center justify-between px-2">
+                                    <h3 class="text-xs font-black text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                        Fine-Tuning Datasets (Training Pool)
+                                    </h3>
+                                </div>
+
+                                @forelse($files->where('usage_type', '!=', 'rag') as $file)
+                                <div class="group bg-gray-900/40 border border-white/5 hover:border-emerald-500/30 rounded-3xl p-5 transition-all flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-white">{{ $file->file_name }}</p>
+                                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                                <p class="text-[10px] font-mono text-gray-500 uppercase">{{ $file->formatted_size }} • {{ $file->created_at->diffForHumans() }}</p>
+                                                <span class="px-2 py-0.5 bg-gray-500/10 text-gray-400 border border-white/5 rounded text-[9px] font-black uppercase tracking-tighter">Raw Training Data</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        @php
+                                            $statusMap = ['pending' => 'bg-orange-500/10 text-orange-400 border-orange-500/20', 'processing' => 'bg-blue-500/10 text-blue-400 border-blue-500/20', 'completed' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'];
+                                            $style = $statusMap[$file->status] ?? 'bg-gray-800 text-gray-400';
+                                        @endphp
+                                        <span class="px-2.5 py-0.5 border rounded-full text-[10px] font-black uppercase tracking-tighter {{ $style }}">
+                                            {{ $file->status }}
+                                        </span>
+                                        <div class="flex items-center bg-white/5 rounded-xl p-1 border border-white/5">
+                                            <a href="{{ route('datasets.download', $file->id) }}" class="p-2 text-gray-500 hover:text-white transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            </a>
+                                            @if(auth()->user()->isAdmin())
+                                            <button onclick="openPreprocessModal({{ $file->id }}, '{{ $file->status }}', '{{ addslashes($file->admin_note) }}', '{{ $file->file_name }}')" class="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                @empty
+                                <div class="py-10 text-center border border-dashed border-white/5 rounded-3xl bg-gray-900/10 text-gray-600 text-[10px] italic uppercase tracking-widest">No training assets located.</div>
+                                @endforelse
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Right Column: Side Info --}}
+                    <div class="space-y-6">
+                        <div class="bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] p-8">
+                            <h3 class="text-sm font-black text-emerald-500 uppercase tracking-[0.2em] mb-6">Quality Control</h3>
+                            <p class="text-[11px] text-gray-400 leading-relaxed mb-4">Admin will manually inspect raw documents to ensure compatibility with LLM tokenization standards.</p>
+                            <div class="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                <p class="text-[10px] font-black text-gray-500 uppercase mb-2">Workflow</p>
+                                <ul class="space-y-3">
+                                    <li class="flex items-center gap-2 text-[10px] text-gray-300">
+                                        <span class="w-1.5 h-1.5 bg-orange-400 rounded-full"></span> User Uploads Raw Data
+                                    </li>
+                                    <li class="flex items-center gap-2 text-[10px] text-gray-300">
+                                        <span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span> Admin Preprocessing
+                                    </li>
+                                    <li class="flex items-center gap-2 text-[10px] text-gray-300">
+                                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Optimized & Ready
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        {{-- Main Content --}}
-        <div class="flex-1 overflow-hidden">
-            <main class="flex-1 relative overflow-y-auto focus:outline-none">
-                <div class="py-6">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        {{-- Page Header --}}
-                        <div class="mb-8">
-                            <h1 class="text-2xl font-bold text-white">Data Upload</h1>
-                            <p class="mt-1 text-gray-400">Upload your business documents to create your AI knowledge base</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {{-- Upload Area --}}
-                            <div class="lg:col-span-2">
-                                <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-8">
-                                    <div class="text-center">
-                                        <div id="upload-area" class="border-2 border-dashed border-gray-600 hover:border-emerald-400 transition-colors rounded-lg p-12 cursor-pointer" 
-                                             onclick="document.getElementById('file-input').click()"
-                                             ondrop="handleFileDrop(event)" 
-                                             ondragover="handleDragOver(event)"
-                                             ondragleave="handleDragLeave(event)">
-                                            
-                                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                            </svg>
-                                            
-                                            <h3 class="text-lg font-medium text-white mb-2">Upload your business documents</h3>
-                                            <p class="text-gray-400 mb-4">Drag and drop files here, or click to browse</p>
-                                            
-                                            <input type="file" id="file-input" multiple accept=".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg" class="hidden" onchange="handleFileSelect(event)">
-                                            
-                                            <button type="button" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                                                Choose Files
-                                            </button>
-                                        </div>
-                                        
-                                        {{-- Supported Formats --}}
-                                        <div class="mt-6">
-                                            <p class="text-sm text-gray-400 mb-3">Supported formats:</p>
-                                            <div class="flex flex-wrap justify-center gap-2">
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">PDF</span>
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">DOCX</span>
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">XLSX</span>
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">CSV</span>
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">TXT</span>
-                                                <span class="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs">Images</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Upload Queue --}}
-                                <div id="upload-queue" class="mt-6 space-y-3 hidden">
-                                    <h3 class="text-lg font-medium text-white">Upload Queue</h3>
-                                    <div id="file-list"></div>
-                                </div>
-                            </div>
-
-                            {{-- Upload Guidelines --}}
-                            <div class="space-y-6">
-                                <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-6">
-                                    <h3 class="text-lg font-medium text-white mb-4">Upload Guidelines</h3>
-                                    <div class="space-y-4">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-white font-medium text-sm">Business Documents</h4>
-                                                <p class="text-gray-400 text-xs">SOPs, manuals, contracts, policies</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-white font-medium text-sm">Structured Data</h4>
-                                                <p class="text-gray-400 text-xs">Excel sheets, CSV files, databases</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-white font-medium text-sm">Communication Records</h4>
-                                                <p class="text-gray-400 text-xs">Email logs, chat histories</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-indigo-900/20 border border-indigo-500/30 rounded-xl p-6">
-                                    <h3 class="text-lg font-medium text-white mb-4">Data Categories</h3>
-                                    <div class="space-y-3">
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="form-checkbox text-indigo-500 bg-gray-700 border-gray-600 rounded" checked>
-                                            <span class="ml-3 text-gray-300 text-sm">Quality Control</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="form-checkbox text-indigo-500 bg-gray-700 border-gray-600 rounded">
-                                            <span class="ml-3 text-gray-300 text-sm">Inventory Management</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="form-checkbox text-indigo-500 bg-gray-700 border-gray-600 rounded">
-                                            <span class="ml-3 text-gray-300 text-sm">Customer Service</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="form-checkbox text-indigo-500 bg-gray-700 border-gray-600 rounded">
-                                            <span class="ml-3 text-gray-300 text-sm">HR Procedures</span>
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="form-checkbox text-indigo-500 bg-gray-700 border-gray-600 rounded">
-                                            <span class="ml-3 text-gray-300 text-sm">Financial Records</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Existing Files --}}
-                        <div class="mt-12">
-                            <div class="bg-gray-800/40 border border-gray-700 rounded-xl">
-                                <div class="p-6 border-b border-gray-700">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-lg font-medium text-white">Your Uploaded Files</h3>
-                                        <div class="text-sm text-gray-400">3 files • 2.4 MB</div>
-                                    </div>
-                                </div>
-                                <div class="divide-y divide-gray-700">
-                                    {{-- File Item --}}
-                                    <div class="p-6 flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
-                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-white font-medium">quality_control_procedures.pdf</p>
-                                                <p class="text-gray-400 text-sm">Uploaded 2 hours ago • 1.2 MB</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="px-3 py-1 bg-emerald-900/30 text-emerald-400 rounded-full text-xs">Processed</span>
-                                            <button class="text-gray-400 hover:text-red-400 transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="p-6 flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center mr-4">
-                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-white font-medium">supplier_contacts.xlsx</p>
-                                                <p class="text-gray-400 text-sm">Uploaded 1 day ago • 856 KB</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="px-3 py-1 bg-emerald-900/30 text-emerald-400 rounded-full text-xs">Processed</span>
-                                            <button class="text-gray-400 hover:text-red-400 transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="p-6 flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-white font-medium">employee_handbook.docx</p>
-                                                <p class="text-gray-400 text-sm">Uploaded 3 days ago • 432 KB</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="px-3 py-1 bg-yellow-900/30 text-yellow-400 rounded-full text-xs">Processing</span>
-                                            <button class="text-gray-400 hover:text-red-400 transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+        </main>
     </div>
 </div>
 
-<script>
-// File handling functions
-let selectedFiles = [];
 
-function handleDragOver(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    document.getElementById('upload-area').classList.add('border-emerald-400', 'bg-emerald-900/10');
-}
-
-function handleDragLeave(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    document.getElementById('upload-area').classList.remove('border-emerald-400', 'bg-emerald-900/10');
-}
-
-function handleFileDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    document.getElementById('upload-area').classList.remove('border-emerald-400', 'bg-emerald-900/10');
-    
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
-}
-
-function handleFileSelect(e) {
-    const files = Array.from(e.target.files);
-    handleFiles(files);
-}
-
-function handleFiles(files) {
-    selectedFiles = [...selectedFiles, ...files];
-    displayFileList();
-    showUploadQueue();
-}
-
-function displayFileList() {
-    const fileList = document.getElementById('file-list');
-    fileList.innerHTML = '';
-    
-    selectedFiles.forEach((file, index) => {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'flex items-center justify-between p-4 bg-gray-800/60 border border-gray-700 rounded-lg';
-        
-        const fileIcon = getFileIcon(file.type);
-        const fileSize = formatFileSize(file.size);
-        
-        fileItem.innerHTML = `
-            <div class="flex items-center">
-                <div class="w-10 h-10 ${fileIcon.color} rounded-lg flex items-center justify-center mr-4">
-                    ${fileIcon.svg}
+@if(auth()->user()->isAdmin())
+<div id="preprocessModal" class="fixed inset-0 z-50 hidden bg-gray-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-white/10 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <form id="preprocessForm" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="p-10">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white tracking-tight">Quality Assurance</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="modal_filename">File: loading...</p>
+                    </div>
+                    <button type="button" onclick="closePreprocessModal()" class="text-gray-500 hover:text-white p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
-                <div>
-                    <p class="text-white font-medium">${file.name}</p>
-                    <p class="text-gray-400 text-sm">${fileSize}</p>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3">Review Status</label>
+                        <select name="status" id="modal_status" class="w-full bg-black/40 border-gray-800 rounded-2xl p-4 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <option value="pending">Pending Review</option>
+                            <option value="processing">Currently Preprocessing</option>
+                            <option value="completed">Completed (Ready for Train)</option>
+                            <option value="rejected">Rejected (Invalid Format)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3">Feedback Note</label>
+                        <textarea name="admin_note" id="modal_note" rows="3" class="w-full bg-black/40 border-gray-800 rounded-2xl p-4 text-sm text-gray-300 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Inform user about cleanup actions..."></textarea>
+                    </div>
+                    <div class="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-3xl">
+                        <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3">Upload Optimized Asset (Optional)</label>
+                        <input type="file" name="preprocessed_file" class="text-xs text-gray-500 w-full mt-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-emerald-500 file:text-gray-950 hover:file:bg-emerald-400">
+                        <p class="text-[9px] text-gray-600 mt-3 italic">Uploading a new file will override the original during model fine-tuning.</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="px-3 py-1 bg-blue-900/30 text-blue-400 rounded-full text-xs">Ready</span>
-                <button onclick="removeFile(${index})" class="text-gray-400 hover:text-red-400 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+            <div class="bg-gray-800/30 p-8 flex justify-end gap-4 border-t border-white/5">
+                <button type="button" onclick="closePreprocessModal()" class="px-6 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest">Cancel</button>
+                <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 px-10 py-4 rounded-2xl text-xs font-black transition-all shadow-lg shadow-emerald-500/20">
+                    COMMIT CHANGES
                 </button>
             </div>
-        `;
+        </form>
+    </div>
+</div>
+@endif
+
+<script>
+function openPreprocessModal(id, currentStatus, currentNote, filename) {
+    const modal = document.getElementById('preprocessModal');
+    const form = document.getElementById('preprocessForm');
+    
+    form.action = `/admin/datasets/${id}/update-status`;
+    
+    document.getElementById('modal_status').value = currentStatus;
+    document.getElementById('modal_note').value = (currentNote === 'null' || !currentNote) ? '' : currentNote;
+    document.getElementById('modal_filename').textContent = `Asset: ${filename}`;
+
+    modal.classList.remove('hidden');
+}
+
+function closePreprocessModal() {
+    document.getElementById('preprocessModal').classList.add('hidden');
+}
+
+let selectedFiles = [];
+function handleFileSelect(e) { handleFiles(Array.from(e.target.files)); }
+function handleFiles(files) {
+    selectedFiles = [...selectedFiles, ...files];
+    uploadFiles(); 
+}
+async function uploadFiles() {
+    const usageType = document.querySelector('input[name="usage_type"]:checked').value;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const promises = selectedFiles.map(file => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('usage_type', usageType); 
         
-        fileList.appendChild(fileItem);
+        return fetch('/datasets/upload', { 
+            method: 'POST', 
+            headers: { 'X-CSRF-TOKEN': csrfToken }, 
+            body: formData 
+        });
     });
-    
-    if (selectedFiles.length > 0) {
-        const uploadButton = document.createElement('button');
-        uploadButton.className = 'w-full mt-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-all';
-        uploadButton.innerHTML = `Upload ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}`;
-        uploadButton.onclick = uploadFiles;
-        
-        fileList.appendChild(uploadButton);
-    }
+    await Promise.all(promises);
+    window.location.reload();
 }
 
-function showUploadQueue() {
-    if (selectedFiles.length > 0) {
-        document.getElementById('upload-queue').classList.remove('hidden');
-    }
-}
-
-function removeFile(index) {
-    selectedFiles.splice(index, 1);
-    displayFileList();
-    
-    if (selectedFiles.length === 0) {
-        document.getElementById('upload-queue').classList.add('hidden');
-    }
-}
-
-function uploadFiles() {
-    // Simulate file upload
-    const fileList = document.getElementById('file-list');
-    const uploadButton = fileList.querySelector('button');
-    
-    if (uploadButton) {
-        uploadButton.innerHTML = 'Uploading...';
-        uploadButton.disabled = true;
-        
-        // Simulate upload progress
-        setTimeout(() => {
-            alert(`Successfully uploaded ${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''}!`);
-            selectedFiles = [];
-            document.getElementById('upload-queue').classList.add('hidden');
-            document.getElementById('file-input').value = '';
-        }, 2000);
-    }
-}
-
-function getFileIcon(fileType) {
-    const icons = {
-        'application/pdf': {
-            color: 'bg-red-500',
-            svg: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>'
-        },
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
-            color: 'bg-emerald-500',
-            svg: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"></path></svg>'
-        },
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
-            color: 'bg-blue-500',
-            svg: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>'
-        }
-    };
-    
-    return icons[fileType] || {
-        color: 'bg-gray-500',
-        svg: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>'
-    };
-}
+document.getElementById('rag-trigger')?.addEventListener('change', function() {
+    document.getElementById('rag-hint').classList.toggle('hidden', !this.checked);
+});
 
 function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return '0 B';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 </script>
 @endsection

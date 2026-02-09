@@ -77,59 +77,29 @@
                     </div>
 
                     {{-- Model Selector --}}
+                    {{-- Model Selector --}}
                     <div class="px-3 py-4 border-t border-gray-800">
-                        <h3 class="text-sm font-medium text-gray-400 mb-3">Active Models</h3>
-                        <div class="space-y-2">
-                            <button onclick="switchModel('manufacturing-qc')" class="w-full text-left p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-white font-medium text-sm">Manufacturing QC</p>
-                                        <p class="text-emerald-400 text-xs">Qwen-4B</p>
+                        <h3 class="text-sm font-medium text-gray-400 mb-3">Your Deployed Models</h3>
+                        <div class="space-y-2" id="model-list-container">
+                            @forelse($publishedModels as $model)
+                                <button onclick="switchModel({{ $model->id }}, '{{ $model->job_name }}', '{{ $model->baseModel->name }}', event)" 
+                                    id="model-btn-{{ $model->id }}"
+                                    class="w-full text-left p-3 rounded-lg transition-colors {{ $selectedModelId == $model->id ? 'bg-emerald-900/20 border border-emerald-500/30' : 'bg-gray-800/40 border border-gray-700 hover:bg-gray-700/60' }}">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-white font-medium text-sm">{{ $model->job_name }}</p>
+                                            <p class="text-emerald-400 text-xs">{{ $model->baseModel->name }}</p>
+                                        </div>
+                                        <div class="w-2 h-2 {{ $model->is_published ? 'bg-emerald-400' : 'bg-gray-600' }} rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
                                     </div>
-                                    <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                                </div>
-                            </button>
-                            
-                            <button onclick="switchModel('supplier-assistant')" class="w-full text-left p-3 bg-gray-800/40 border border-gray-700 rounded-lg hover:bg-gray-700/60 transition-colors">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-white font-medium text-sm">Supplier Assistant</p>
-                                        <p class="text-gray-400 text-xs">SmolLM-1.7B</p>
-                                    </div>
-                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
-                                </div>
-                            </button>
-                            
-                            <button onclick="switchModel('hr-policy')" class="w-full text-left p-3 bg-gray-800/40 border border-gray-700 rounded-lg hover:bg-gray-700/60 transition-colors">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-white font-medium text-sm">HR Policy Bot</p>
-                                        <p class="text-gray-400 text-xs">Llama-3B</p>
-                                    </div>
-                                    <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
-                                </div>
-                            </button>
+                                </button>
+                            @empty
+                                <p class="text-xs text-gray-600 px-2 italic">No models available. Deploy one first!</p>
+                            @endforelse
                         </div>
                     </div>
 
-                    {{-- Quick Test Prompts --}}
-                    <div class="px-3 py-4 border-t border-gray-800 flex-1">
-                        <h3 class="text-sm font-medium text-gray-400 mb-3">Quick Test Prompts</h3>
-                        <div class="space-y-2">
-                            <button onclick="useQuickPrompt('quality')" class="w-full text-left p-2 text-xs text-gray-300 bg-gray-800/40 hover:bg-gray-700/60 rounded transition-colors">
-                                "What's our quality control process for bearings?"
-                            </button>
-                            <button onclick="useQuickPrompt('supplier')" class="w-full text-left p-2 text-xs text-gray-300 bg-gray-800/40 hover:bg-gray-700/60 rounded transition-colors">
-                                "Who is our main supplier for steel components?"
-                            </button>
-                            <button onclick="useQuickPrompt('hr')" class="w-full text-left p-2 text-xs text-gray-300 bg-gray-800/40 hover:bg-gray-700/60 rounded transition-colors">
-                                "What's the vacation policy for new employees?"
-                            </button>
-                            <button onclick="useQuickPrompt('pricing')" class="w-full text-left p-2 text-xs text-gray-300 bg-gray-800/40 hover:bg-gray-700/60 rounded transition-colors">
-                                "Show me pricing for hydraulic pumps"
-                            </button>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -146,14 +116,33 @@
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-lg font-semibold text-white" id="current-model-name">Manufacturing QC Assistant</h2>
-                            <p class="text-sm text-gray-400">
-                                <span id="current-model-type">Qwen-4B</span> • 
-                                <span class="inline-flex items-center">
-                                    <span class="w-2 h-2 bg-emerald-400 rounded-full mr-1"></span>
-                                    Online
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-lg font-semibold text-white" id="current-model-name">Manufacturing QC Assistant</h2>
+                          
+                                <span id="rag-badge" class="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded text-[9px] font-black uppercase tracking-tighter">
+                                    RAG Enabled
                                 </span>
-                            </p>
+                            </div>
+                            <div class="flex items-center gap-3 mt-1">
+                                <p class="text-sm text-gray-400">
+                                    <span id="current-model-type">Qwen-4B</span> • 
+                                    <span class="inline-flex items-center text-emerald-400">
+                                        <span class="w-2 h-2 bg-emerald-400 rounded-full mr-1 animate-pulse"></span>
+                                        Online
+                                    </span>
+                                </p>
+                        
+                                <div id="rag-selector-container" class="flex items-center gap-2 ml-4 pl-4 border-l border-white/10">
+                                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Source:</span>
+                                    <select id="rag-dataset-id" class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold rounded-lg px-2 py-1 outline-none">
+                                        @isset($availableRagDatasets)
+                                            @foreach($availableRagDatasets as $ragDs)
+                                                <option value="{{ $ragDs->id }}">{{ $ragDs->file_name }}</option>
+                                            @endforeach
+                                        @endisset
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -173,70 +162,10 @@
 
             {{-- Chat Messages --}}
             <div class="flex-1 overflow-y-auto p-6 space-y-6" id="chat-messages">
-                {{-- Welcome Message --}}
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-sm font-bold">AI</span>
-                    </div>
-                    <div class="flex-1">
-                        <div class="bg-gray-800/60 border border-gray-700 rounded-2xl rounded-tl-sm p-4 max-w-2xl">
-                            <p class="text-gray-200">
-                                Hello! I'm your Manufacturing QC Assistant, trained on your quality control procedures and standards. 
-                                I can help you with process questions, standards verification, and troubleshooting guidance.
-                            </p>
-                            <p class="text-gray-400 text-sm mt-2">
-                                Try asking me about bearing quality control, material specifications, or testing procedures.
-                            </p>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Just now</p>
-                    </div>
+
                 </div>
 
-                {{-- Example conversation --}}
-                <div class="flex items-start gap-3 justify-end">
-                    <div class="flex-1 flex justify-end">
-                        <div class="bg-emerald-500/20 border border-emerald-400/30 rounded-2xl rounded-tr-sm p-4 max-w-2xl">
-                            <p class="text-gray-200">
-                                What's our quality control process for the new bearing production line?
-                            </p>
-                        </div>
-                    </div>
-                    <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-sm font-bold">You</span>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-sm font-bold">AI</span>
-                    </div>
-                    <div class="flex-1">
-                        <div class="bg-gray-800/60 border border-gray-700 rounded-2xl rounded-tl-sm p-4 max-w-2xl">
-                            <p class="text-gray-200 mb-3">
-                                <strong>Based on your QC-Bear-2024 procedure:</strong>
-                            </p>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex items-start gap-2">
-                                    <span class="text-emerald-400 mt-1">•</span>
-                                    <span class="text-gray-200"><strong>Incoming Inspection:</strong> Material certification + dimensional check (±0.001mm tolerance)</span>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <span class="text-emerald-400 mt-1">•</span>
-                                    <span class="text-gray-200"><strong>In-Process:</strong> Every 50 units - surface finish verification & noise testing</span>
-                                </div>
-                                <div class="flex items-start gap-2">
-                                    <span class="text-emerald-400 mt-1">•</span>
-                                    <span class="text-gray-200"><strong>Final Inspection:</strong> 100% vibration analysis using Brüel & Kjær equipment</span>
-                                </div>
-                            </div>
-                            <p class="text-emerald-300 text-sm mt-3 italic">
-                                Note: Process updated when you switched to SKF Malaysia suppliers in March 2024
-                            </p>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">2 minutes ago</p>
-                    </div>
-                </div>
-            </div>
+                
 
             {{-- Chat Input --}}
             <div class="border-t border-gray-700 p-4">
@@ -257,7 +186,16 @@
                     </button>
                 </div>
                 <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
-                    <span>Press Enter to send, Shift+Enter for new line</span>
+                    <div class="flex items-center gap-4">
+                        <span>Press Enter to send, Shift+Enter for new line</span>
+                        <label class="flex items-center gap-2 cursor-pointer group" id="rag-toggle-container">
+                            <div class="relative">
+                                <input type="checkbox" id="use-rag" class="sr-only peer" checked>
+                                <div class="w-7 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Search Knowledge Base</span>
+                        </label>
+                    </div>
                     <span id="char-count">0/2000</span>
                 </div>
             </div>
@@ -266,50 +204,133 @@
 </div>
 
 <script>
-let currentModel = 'manufacturing-qc';
-let messageId = 0;
 
-// Model switching
-function switchModel(modelKey) {
-    currentModel = modelKey;
+let currentModelId = {{ $selectedModelId ?? ($publishedModels->first()->id ?? 0) }};
+const modelsData = @json($publishedModels->keyBy('id'));
+const hasGlobalRagData = {{ (isset($availableRagDatasets) && $availableRagDatasets->count() > 0) ? 'true' : 'false' }};
+let chatHistory = [];
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (currentModelId !== 0) {
+        const initialModel = modelsData[currentModelId] || Object.values(modelsData)[0];
+        updateUI(initialModel.id, initialModel.job_name, initialModel.base_model.name);
+    }
+    loadChatHistoryForCurrentModel();
+});
+
+function switchModel(modelId, modelName, modelType, event) {
+    currentModelId = modelId;
     
-    // Remove active state from all model buttons
-    document.querySelectorAll('[onclick^="switchModel"]').forEach(btn => {
-        btn.className = 'w-full text-left p-3 bg-gray-800/40 border border-gray-700 rounded-lg hover:bg-gray-700/60 transition-colors';
+
+    document.querySelectorAll('#model-list-container button').forEach(btn => {
+        btn.classList.remove('bg-emerald-900/20', 'border-emerald-500/30');
+        btn.classList.add('bg-gray-800/40', 'border-gray-700');
     });
     
-    // Add active state to selected model
-    event.target.closest('button').className = 'w-full text-left p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg';
-    
-    const models = {
-        'manufacturing-qc': {
-            name: 'Manufacturing QC Assistant',
-            type: 'Qwen-4B',
-            welcome: 'Hello! I\'m your Manufacturing QC Assistant. I can help with quality control procedures, standards verification, and troubleshooting guidance.'
-        },
-        'supplier-assistant': {
-            name: 'Supplier Assistant',
-            type: 'SmolLM-1.7B',
-            welcome: 'Hi! I\'m your Supplier Assistant. I can help you find supplier information, contact details, and procurement data.'
-        },
-        'hr-policy': {
-            name: 'HR Policy Bot',
-            type: 'Llama-3B',
-            welcome: 'Hello! I\'m your HR Policy Assistant. I can answer questions about employee policies, procedures, and company guidelines.'
-        }
-    };
-    
-    const model = models[modelKey];
-    document.getElementById('current-model-name').textContent = model.name;
-    document.getElementById('current-model-type').textContent = model.type;
-    
-    // Clear chat and show new welcome message
-    clearChat();
-    addWelcomeMessage(model.welcome);
+    const activeBtn = document.getElementById(`model-btn-${modelId}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-gray-800/40', 'border-gray-700');
+        activeBtn.classList.add('bg-emerald-900/20', 'border-emerald-500/30');
+    }
+
+
+    updateUI(modelId, modelName, modelType);
+
+
+    loadChatHistoryForCurrentModel();
 }
+
+
+function updateUI(id, name, type) {
+
+    document.getElementById('current-model-name').textContent = name;
+    document.getElementById('current-model-type').textContent = type;
+    
+
+    const elements = ['rag-badge', 'rag-selector-container', 'rag-toggle-container'];
+    elements.forEach(elId => {
+        const el = document.getElementById(elId);
+        if (el) {
+            el.classList.remove('hidden');
+
+            if (elId.includes('container')) el.classList.add('flex');
+        }
+    });
+
+    console.log("RAG UI forced visible for model:", name);
+}
+
+
+async function sendMessage() {
+    const messageInput = document.getElementById('chat-input');
+    const message = messageInput.value.trim();
+  
+    const useRag = document.getElementById('use-rag')?.checked || false;
+    const ragDatasetId = document.getElementById('rag-dataset-id')?.value || null;
+
+    if (!message || currentModelId === 0) return;
+
+    addMessage(message, 'user');
+    messageInput.value = '';
+    autoResize(messageInput);
+    showTypingIndicator();
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                message: message,
+                model_id: currentModelId,
+                is_rag: useRag,
+                rag_dataset_id: ragDatasetId 
+            })
+        });
+
+        const data = await response.json();
+        hideTypingIndicator();
+        addMessage(data.reply, 'ai');
+
+    } catch (error) {
+        hideTypingIndicator();
+        console.error('Chat Error:', error);
+        addMessage('Error: Service is temporarily unavailable.', 'ai');
+    }
+}
+
+
+function getStorageKey() {
+    return `chatHistory_model_${currentModelId}`;
+}
+
+
+function timeAgo(timestamp) {
+    const now = Date.now();
+    const diff = Math.floor((now - timestamp) / 1000); 
+
+    if (diff < 10) return 'Just now';
+    if (diff < 60) return `${diff} seconds ago`;
+
+    const minutes = Math.floor(diff / 60);
+    if (minutes < 60) return `${minutes} minutes ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hours ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days} days ago`;
+}
+
 
 function addWelcomeMessage(message) {
     const chatMessages = document.getElementById('chat-messages');
+    const timestamp = Date.now();
+    const timeText = timeAgo(timestamp);
     const welcomeHtml = `
         <div class="flex items-start gap-3">
             <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -319,7 +340,7 @@ function addWelcomeMessage(message) {
                 <div class="bg-gray-800/60 border border-gray-700 rounded-2xl rounded-tl-sm p-4 max-w-2xl">
                     <p class="text-gray-200">${message}</p>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Just now</p>
+                <p class="text-xs text-gray-500 mt-2 time-label">${timeText}</p>
             </div>
         </div>
     `;
@@ -339,71 +360,20 @@ function useQuickPrompt(type) {
     document.getElementById('chat-input').focus();
 }
 
-// Chat functionality
-function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    // Disable input during request
-    input.disabled = true;
-    document.getElementById('send-button').disabled = true;
-    
-    // Add user message
-    addMessage(message, 'user');
-    
-    // Clear input
-    input.value = '';
-    autoResize(input);
-    updateCharCount();
-    
-    // Show typing indicator
-    showTypingIndicator();
-    
-    // Send request to backend API
-    fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-        },
-        body: JSON.stringify({
-            message: message,
-            model_type: currentModel
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        
-        if (data.error) {
-            addMessage('Sorry, I encountered an error: ' + data.error, 'ai');
-        } else {
-            addMessage(data.response, 'ai');
-            
-            // Show response metadata if available
-            if (data.metadata) {
-                console.log('Response metadata:', data.metadata);
-            }
-        }
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        console.error('Error:', error);
-        addMessage('Sorry, I encountered a connection error. Please try again.', 'ai');
-    })
-    .finally(() => {
-        // Re-enable input
-        input.disabled = false;
-        document.getElementById('send-button').disabled = false;
-        input.focus();
-    });
-}
-
 function addMessage(message, sender) {
     const chatMessages = document.getElementById('chat-messages');
     const messageId = Date.now();
+    const timestamp = Date.now();
+    const timeText = timeAgo(timestamp);
+
+    chatHistory.push({
+        sender: sender,
+        message: message,
+        timestamp: timestamp
+    });
+
+    const key = getStorageKey();
+    sessionStorage.setItem(key, JSON.stringify(chatHistory));
     
     let processedMessage = message;
     if (sender === 'ai') {
@@ -437,7 +407,7 @@ function addMessage(message, sender) {
                         color: #f3f4f6;
                     ">${processedMessage}</div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Just now</p>
+                <p class="text-xs text-gray-500 mt-2 time-label">${timeText}</p>
             </div>
         </div>
     `;
@@ -609,6 +579,76 @@ function addMessage(message, sender) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+
+function renderMessageFromHistory(item) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageId = item.timestamp;
+    const timeText = timeAgo(item.timestamp);
+
+    let processedMessage = item.message;
+    if (item.sender === 'ai') {
+        processedMessage = marked.parse(item.message);
+    } else {
+        processedMessage = item.message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    const messageHtml = item.sender === 'user' ? `
+        <div class="flex items-start gap-3 justify-end" id="msg-${messageId}">
+            <div class="flex-1 flex justify-end">
+                <div class="bg-emerald-500/20 border border-emerald-400/30 rounded-2xl rounded-tr-sm p-4 max-w-2xl">
+                    <p class="text-gray-200">${processedMessage}</p>
+                </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-sm font-bold">You</span>
+            </div>
+        </div>
+    ` : `
+        <div class="flex items-start gap-3" id="msg-${messageId}">
+            <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-sm font-bold">AI</span>
+            </div>
+            <div class="flex-1">
+                <div class="bg-gray-800/60 border border-gray-700 rounded-2xl rounded-tl-sm p-4 max-w-2xl">
+                    <div style="color:#f3f4f6;">${processedMessage}</div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 time-label">${timeText}</p>
+            </div>
+        </div>
+    `;
+
+    chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+}
+
+
+
+function loadChatHistoryForCurrentModel() {
+    const key = getStorageKey();
+    const saved = sessionStorage.getItem(key);
+
+    chatHistory = [];
+    document.getElementById('chat-messages').innerHTML = '';
+
+    if (saved) {
+        try {
+            chatHistory = JSON.parse(saved);
+
+            chatHistory.forEach(item => {
+                renderMessageFromHistory(item);
+            });
+
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        } catch (e) {
+            console.error('Failed to load chat history for', currentModel, e);
+            sessionStorage.removeItem(key);
+            chatHistory = [];
+        }
+    }
+}
+
+
 function addAIResponse(userMessage) {
     // Simulate different responses based on current model and message content
     let response = generateResponse(userMessage);
@@ -717,6 +757,9 @@ function updateCharCount() {
 // Utility functions
 function clearChat() {
     document.getElementById('chat-messages').innerHTML = '';
+    chatHistory = [];
+    const key = getStorageKey();
+    sessionStorage.removeItem(key);
 }
 
 function exportChat() {
@@ -728,6 +771,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('chat-input').addEventListener('input', function() {
         updateCharCount();
     });
+    loadChatHistoryForCurrentModel();
 });
+
+
+function updateAllTimeLabels() {
+    document.querySelectorAll('[data-timestamp]').forEach(el => {
+        const ts = parseInt(el.getAttribute('data-timestamp'));
+        const label = el.querySelector('.time-label');
+        if (label) {
+            label.textContent = timeAgo(ts);
+        }
+    });
+}
+
+
+setInterval(updateAllTimeLabels, 30000);
 </script>
 @endsection

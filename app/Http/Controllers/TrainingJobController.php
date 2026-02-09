@@ -2,117 +2,192 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TrainingJob;
 use Illuminate\Http\Request;
+use App\Models\TrainingJob;
+use App\Models\BaseModel;
+use App\Models\Dataset;
+use Illuminate\Support\Facades\Auth;
+
+use Illuminate\Support\Facades\Http;
 
 class TrainingJobController extends Controller
 {
     public function index()
     {
-        $jobs = TrainingJob::orderBy('created_at', 'desc')->get();
-        
+        $user = auth()->user();
+
+        $query = TrainingJob::with(['user', 'baseModel', 'dataset'])->latest();
+
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        $jobs = $query->get();
+
         return view('training-jobs', compact('jobs'));
     }
 
+    public function adminStart(Request $request, $id)
+    {
+        $job = TrainingJob::findOrFail($id);
+        
+        $duration = $request->hours . "h " . $request->minutes . "m";
+
+        $job->update([
+            'status' => 'running',
+            'started_at' => now(),
+            'scheduled_duration' => $duration,
+            'progress' => 1,
+            'hyperparameters' => array_merge($job->hyperparameters ?? [], [
+                'epochs' => $request->epochs
+            ])
+        ]);
+
+        return back();
+    }
+
+    public function adminTerminate(Request $request, TrainingJob $job)
+    {
+        if (!auth()->user()->isAdmin()) abort(403);
+
+        $job->update([
+            'status' => 'failed',
+            'error_message' => $request->reason
+        ]);
+
+        return back()->with('error', 'Job terminated.');
+    }
+    
+
+    public function create()
+    {
+        $availableDatasets = Dataset::where('user_id', auth()->id())
+                                    ->where('status', 'completed')
+                                    ->get();
+                                    
+        $baseModels = BaseModel::all(); 
+        
+        return view('training-jobs.create', compact('availableDatasets', 'baseModels'));
+    }
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'model_type' => 'required|string',
-            'dataset_name' => 'required|string',
-            'epochs' => 'required|integer|min:1|max:10',
-            'batch_size' => 'required|integer|in:4,8,16,32'
+            'job_name' => 'required|string|max:255',
+            'base_model_id' => 'required|exists:base_models,id',
+            'dataset_id' => 'required|exists:datasets,id',
+            'epochs' => 'nullable|integer|min:1|max:100',
+            'learning_rate' => 'nullable|numeric'
         ]);
 
-        $job = TrainingJob::create([
-            'name' => $request->name,
-            'model_type' => $request->model_type,
-            'dataset_name' => $request->dataset_name,
-            'epochs' => $request->epochs,
-            'batch_size' => $request->batch_size,
-            'status' => 'queued'
+        $dataset = Dataset::where('id', $request->dataset_id)
+                          ->where('user_id', Auth::id())
+                          ->firstOrFail();
+
+        TrainingJob::create([
+            'user_id' => Auth::id(),
+            'job_name' => $request->job_name,
+            'base_model_id' => $request->base_model_id,
+            'dataset_id' => $request->dataset_id,
+            'status' => 'queued', 
+            'hyperparameters' => [
+                'epochs' => $request->input('epochs', 3), 
+                'learning_rate' => $request->input('learning_rate', 0.001),
+                'batch_size' => 32
+            ]
         ]);
 
-        // Simulate training job progression (in a real app, this would be handled by a queue)
-        $this->simulateTraining($job);
-
-        return response()->json([
-            'message' => 'Training job created successfully',
-            'job' => $job
-        ]);
+        return redirect()->route('training-jobs.index')
+                         ->with('success', 'Training job created successfully!');
     }
 
-    public function show(TrainingJob $job)
+    public function adminComplete(TrainingJob $job)
     {
-        return response()->json($job);
-    }
-
-    public function retry(TrainingJob $job)
-    {
-        $job->update([
-            'status' => 'queued',
-            'progress' => 0,
-            'error_message' => null,
-            'started_at' => null,
-            'completed_at' => null
-        ]);
-
-        $this->simulateTraining($job);
-
-        return response()->json([
-            'message' => 'Training job restarted',
-            'job' => $job
-        ]);
-    }
-
-    protected function simulateTraining(TrainingJob $job)
-    {
-        // This would normally be handled by a queue job
-        // For demo purposes, we'll update the job status periodically
-        
-        // Mark as started
-        $job->update([
-            'status' => 'running',
-            'started_at' => now()
-        ]);
-
-        // Simulate completion after some time (in real app, use queue jobs)
-        // For now, we'll just set some realistic values
-        if (rand(1, 10) > 8) {
-            // 20% chance of failure
-            $job->update([
-                'status' => 'failed',
-                'error_message' => 'Out of memory during training. Consider reducing batch size.',
-                'completed_at' => now()
-            ]);
-        } else {
-            // 80% chance of success
+        if ($job->status === 'running') {
             $job->update([
                 'status' => 'completed',
                 'progress' => 100,
-                'loss' => round(rand(50, 200) / 1000, 4), // Random loss between 0.05-0.2
-                'accuracy' => round(rand(85, 98) + rand(0, 99) / 100, 2), // Random accuracy 85-98%
-                'completed_at' => now()->addMinutes(rand(30, 120)),
-                'metrics' => [
-                    'final_loss' => round(rand(50, 200) / 1000, 4),
-                    'best_accuracy' => round(rand(85, 98) + rand(0, 99) / 100, 2),
-                    'total_epochs' => $job->epochs,
-                    'learning_rate' => '3e-4'
-                ]
+                'fine_tuned_model_path' => 'models/outputs/' . $job->job_name . '_v1.bin'
             ]);
         }
+
+        return response()->json(['message' => 'Job completed successfully']);
+    }
+    public function deploy(TrainingJob $job)
+    {
+        if ($job->status !== 'completed') {
+            return back()->with('error', 'Job must be completed before deployment.');
+        }
+
+        $job->update([
+            'status' => 'deployed', 
+            'fine_tuned_model_path' => 'https://api.sme-ai.com/v1/models/' . $job->job_name
+        ]);
+
+        return redirect()->route('model-hub')->with('success', 'Model deployed to production!');
     }
 
-    public function getStats()
-    {
-        $stats = [
-            'total' => TrainingJob::count(),
-            'completed' => TrainingJob::where('status', 'completed')->count(),
-            'running' => TrainingJob::where('status', 'running')->count(),
-            'queued' => TrainingJob::where('status', 'queued')->count(),
-            'failed' => TrainingJob::where('status', 'failed')->count(),
-        ];
 
-        return response()->json($stats);
+
+
+
+
+    public function showDeployLab(TrainingJob $job) {
+        return view('admin.deploy-lab', compact('job'));
+    }
+
+    public function publish(Request $request, TrainingJob $job) {
+        $job->update([
+            'status' => 'deployed',
+            'admin_api_key' => $request->admin_api_key,
+            'system_prompt' => $request->system_prompt,
+            'is_published' => true
+        ]);
+        return redirect()->route('training-jobs.index')->with('success', 'Model is LIVE for the user.');
+    }
+
+
+    public function testInference(Request $request, TrainingJob $job)
+    {
+        $apiKey = $request->input('admin_api_key');
+        $systemPrompt = $request->input('system_prompt');
+        $userQuery = $request->input('user_query');
+        $modelId = "gemini-2.0-flash-lite"; 
+
+        try {
+            $url = "https://generativelanguage.googleapis.com/v1/models/{$modelId}:generateContent?key={$apiKey}";
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($url, [
+                'contents' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['text' => "Instructions: {$systemPrompt}\n\nQuestion: {$userQuery}"]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 500,
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Model response empty.';
+                
+                return response()->json([
+                    'success' => true,
+                    'output' => $text
+                ]);
+            }
+
+            $error = $response->json()['error']['message'] ?? 'Unknown API Error';
+            return response()->json(['success' => false, 'message' => "Gemini API Error: " . $error]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => "Connection Error: " . $e->getMessage()]);
+        }
     }
 }

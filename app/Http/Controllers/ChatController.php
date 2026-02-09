@@ -2,72 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Conversation;
-use App\Services\GoogleAIService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Models\TrainingJob;
+use App\Services\GoogleAIService;
+use Illuminate\Support\Facades\Process;
 
 class ChatController extends Controller
 {
-    protected $googleAI;
+    protected $aiService;
 
-    public function __construct(GoogleAIService $googleAI)
+    public function __construct(GoogleAIService $aiService)
     {
-        $this->googleAI = $googleAI;
+        $this->aiService = $aiService;
     }
 
     public function sendMessage(Request $request)
     {
-        $request->validate([
-            'message' => 'required|string|max:2000',
-            'model_type' => 'required|string|in:manufacturing-qc,supplier-assistant,hr-policy'
-        ]);
+        $userQuery = $request->input('message');
+        $modelId = $request->input('model_id');
+        $useRag = $request->input('is_rag', false);
 
-        $sessionId = $request->session()->getId();
-        
-        // Get AI response from Google AI Studio
-        $result = $this->googleAI->chat($request->message, $request->model_type);
-        
-        if (!$result['success']) {
-            return response()->json([
-                'error' => $result['error']
-            ], 500);
+        $job = TrainingJob::with('dataset')->find($modelId);
+        $context = "";
+
+        if ($useRag && $job && $job->dataset && $job->dataset->usage_type === 'rag') {
+            $indexFile = storage_path('app/' . $job->dataset->preprocessed_path);
+            $metaFile = str_replace('.index', '_meta.pkl', $indexFile);
+            $scriptPath = base_path('scripts/rag_search.py');
+
+            $result = Process::run("python \"{$scriptPath}\" \"{$userQuery}\" \"{$indexFile}\" \"{$metaFile}\"");
+
+            if ($result->successful()) {
+                preg_match('/---CONTEXT_START---(.*?)---CONTEXT_END---/s', $result->output(), $matches);
+                $context = trim($matches[1] ?? "");
+            }
         }
 
-        // Save conversation to database
-        $conversation = Conversation::create([
-            'model_name' => $request->model_type,
-            'user_message' => $request->message,
-            'ai_response' => $result['response'],
-            'session_id' => $sessionId,
-            'metadata' => $result['metadata']
-        ]);
+        $finalMessage = $userQuery;
+        if (!empty($context)) {
+            $finalMessage = "Context for reference:\n{$context} , Please answer the question based on the context.\n\nUser Question: {$userQuery}";
+        }
 
-        return response()->json([
-            'response' => $result['response'],
-            'metadata' => $result['metadata'],
-            'conversation_id' => $conversation->id
-        ]);
-    }
+        $modelType = $job->job_type ?? 'default'; 
+        $aiResult = $this->aiService->chat($finalMessage, $modelType);
 
-    public function getHistory(Request $request)
-    {
-        $sessionId = $request->session()->getId();
-        
-        $conversations = Conversation::where('session_id', $sessionId)
-            ->orderBy('created_at', 'asc')
-            ->limit(50)
-            ->get();
+        if ($aiResult['success']) {
+            return response()->json([
+                'reply' => $aiResult['response'],
+                'has_context' => !empty($context)
+            ]);
+        }
 
-        return response()->json($conversations);
-    }
-
-    public function clearHistory(Request $request)
-    {
-        $sessionId = $request->session()->getId();
-        
-        Conversation::where('session_id', $sessionId)->delete();
-        
-        return response()->json(['message' => 'History cleared']);
+        return response()->json(['reply' => 'Error: ' . $aiResult['error']], 500);
     }
 }
